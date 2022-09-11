@@ -19,7 +19,7 @@ public class LandingPageActivity extends AppCompatActivity {
 
     private static final int COLUMN_COUNT = 8;
     private static final int ROW_COUNT = 10;
-    private static final int NUM_BOMBS = 4;
+    private static final int NUM_BOMBS = 40;
     private TextView[][] cell_tvs = new TextView[ROW_COUNT][COLUMN_COUNT];
     private boolean[][] bombLocs = new boolean[ROW_COUNT][COLUMN_COUNT];
     private boolean[][] visited = new boolean[ROW_COUNT][COLUMN_COUNT];
@@ -30,6 +30,8 @@ public class LandingPageActivity extends AppCompatActivity {
     private int totalSquaresRevealed = 0;
     private int seconds = 0;
     private boolean running = false;
+    private boolean gameOver = false;
+    private boolean winner = false;
 
 
     @Override
@@ -61,7 +63,7 @@ public class LandingPageActivity extends AppCompatActivity {
             Random rand = new Random();
             int potentialRow = rand.nextInt(ROW_COUNT);
             int potentialCol = rand.nextInt(COLUMN_COUNT);
-            while(bombLocs[potentialRow][potentialCol] && ((potentialRow*COLUMN_COUNT)+potentialCol != n)){
+            while(bombLocs[potentialRow][potentialCol] || ((potentialRow*COLUMN_COUNT)+potentialCol == n)){
                 potentialRow = rand.nextInt(ROW_COUNT);
                 potentialCol = rand.nextInt(COLUMN_COUNT);
             }
@@ -108,6 +110,14 @@ public class LandingPageActivity extends AppCompatActivity {
 
 
     public void onClickTV(View view){
+        if(gameOver){
+            Intent intent = new Intent(this, ResultPageActivity.class);
+            if(winner){
+                intent.putExtra("winner", 1);
+                intent.putExtra("time", seconds);
+            }
+            startActivity(intent);
+        }
         TextView tv = (TextView) view;
         int n = findIndexOfCellTextView(tv);
         if(firstClick){
@@ -217,13 +227,18 @@ public class LandingPageActivity extends AppCompatActivity {
     }
 
     private void gameOver(boolean b) {
-        Intent intent = new Intent(this, ResultPageActivity.class);
+        gameOver = true;
+        winner = b;
         running = false;
-        if(b){
-            intent.putExtra("winner", 1);
-            intent.putExtra("time", seconds);
+        for(int i = 0;i<ROW_COUNT;i++) {
+            for (int j = 0; j < COLUMN_COUNT; j++) {
+                if (bombLocs[i][j]) {
+                    cell_tvs[i][j].setText(getResources().getString(R.string.mine));
+                    if(!winner)
+                        cell_tvs[i][j].setBackgroundColor(Color.RED);
+                }
+            }
         }
-        startActivity(intent);
 
     }
 
